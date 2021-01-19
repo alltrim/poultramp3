@@ -5,10 +5,10 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/poultramp/app
+WorkingDirectory=/home/poultramp/app/
 User=poultramp
 Group=poultramp
-ExecStart=/usr/bin/python3 /home/poultramp/app/hello_world.py > hello.log
+ExecStart=/usr/bin/python3 /home/poultramp/app/hello_world.py
 
 [Install]
 WantedBy=multi-user.target
