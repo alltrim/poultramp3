@@ -224,7 +224,7 @@ class Dialog():
             result = True
         return result
 
-    # | F1 | F2 | F3 | F4 | F5 | PRINT | F | M+ | MR | CE | ? | ? | ? | ? | PROGRAM | OFF |
+    # | F1 | F2 | F3 | F4 | F5 | PRINT | F | M+ | MR | CE | left | right | arrow up | down | PROGRAM | OFF |
     def keyboardConfig(self, config="0900010006000001"):
         result = False
         data = bytes(config, encoding="cp1251")
