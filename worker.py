@@ -165,7 +165,7 @@ class Worker(Thread):
             role = self._role
 
         try:
-            with open(filename, "w+") as file:
+            with open(filename, "a") as file:
                 rec = "{0:d};{1:%Y.%m.%d %H:%M:%S};C;{2:d};{3:.3f}\r\n".format(role, now, qty, wt)
                 file.write(rec)
             self._currentQty = 0
@@ -240,7 +240,7 @@ class Worker(Thread):
         now = datetime.datetime.now()
         filename = self.getFileName(lot)
         try:
-            with open(filename, "w+") as file:
+            with open(filename, "a") as file:
                 rec = "{0:d};{1:%Y.%m.%d %H:%M:%S};D;{2:d};{3:.3f}\r\n".format(self._role, now, self._session.DeadQty, self._session.DeadWeight)
                 file.write(rec)
             self._session.LotID = 0
