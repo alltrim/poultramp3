@@ -1,0 +1,6 @@
+session.dat
+__pycache__/*
+data/*
+hello_world.py
+HelloWorld.service
+.DS_Store
