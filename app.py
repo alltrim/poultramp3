@@ -15,6 +15,7 @@ class App():
 
         self._gross = None
         self._tare = None
+        self._manual = None
         self._trigger = None
 
     def _readSettings(self):
@@ -42,6 +43,16 @@ class App():
             print(ex)
             print("Can't create Tare worker")
     
+    def _createManual(self):
+        try:
+            cfg = self._config["Manual"]
+            scales = Dialog(cfg)
+            self._manual = Worker(self._session, scales, 3)
+            self._manual.daemon = True
+        except Exception as ex:
+            print(ex)
+            print("Can't create Manual worker")
+
     def _createIO(self):
         pass
 
@@ -58,6 +69,7 @@ class App():
         self._readSettings()
         self._createGross()
         self._createTare()
+        self._createManual()
         self._createIO() 
 
         if self._gross:
@@ -65,6 +77,9 @@ class App():
 
         if self._tare:
             self._tare.start()
+
+        if self._manual:
+            self._manual.start()
 
         self._isRunning = True
         self.loop()
