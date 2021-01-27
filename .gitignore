@@ -4,3 +4,4 @@ data/*
 hello_world.py
 HelloWorld.service
 .DS_Store
+settings.ini
