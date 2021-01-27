@@ -8,6 +8,9 @@ class ADAM4050(Thread):
     #constructor
     def __init__(self, config):
         Thread.__init__(self)
+        
+        self._grosspincallback = None
+        self._tarepincallback = None
 
         self._serial = None
         self.DI = [1 for _ in range(7)]
@@ -33,10 +36,17 @@ class ADAM4050(Thread):
             self.setup()
             self.loop()
 
+    def attachGrossPinCallback(self, callback):
+        if callback:
+            self._grosspincallback = callback
+
+    def attachTarePinCallback(self, callback):
+        if callback:
+            self._tarepincallback = callback
+
     def setup(self):
         if self._disabled:
             return
-        
         try:
             if self._serial:
                 self._serial.close()
@@ -69,12 +79,13 @@ class ADAM4050(Thread):
                 if self.DI[i] == 1 and bit == 0:
                     self.onFalling(i)
                 self.DI[i] = bit
-        print(self.DI)
 
     def onFalling(self, pin):
         print("Falling", pin)
         if pin == self._grosspin:
-            pass
+            if self._grosspincallback:
+                self._grosspincallback()
         elif pin == self._tarepin:
-            pass
+            if self._tarepincallback:
+                self._tarepincallback()
 

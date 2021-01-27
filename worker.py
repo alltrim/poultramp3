@@ -155,6 +155,7 @@ class Worker(Thread):
     def CheckTrigger(self):
         sw = self._Trigger
         self._Trigger = False
+        print(self._role, "Trigger ", sw)
 
 
     def OnStabilization(self, wt: float):

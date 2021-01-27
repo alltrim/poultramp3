@@ -57,8 +57,8 @@ class App():
     def _createIO(self):
         try:
             cfg = self._config["IO"]
-            self._manual = ADAM4050(cfg)
-            self._manual.daemon = True
+            self._trigger = ADAM4050(cfg)
+            self._trigger.daemon = True
         except Exception as ex:
             print(ex)
             print("Can't create IO worker")
@@ -80,9 +80,13 @@ class App():
         self._createIO() 
 
         if self._gross:
+            if self._trigger:
+                self._trigger.attachGrossPinCallback(self._gross.TriggerCallback)
             self._gross.start()
 
         if self._tare:
+            if self._trigger:
+                self._trigger.attachTarePinCallback(self._tare.TriggerCallback)
             self._tare.start()
 
         if self._manual:
