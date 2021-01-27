@@ -52,12 +52,28 @@ class ADAM4050(Thread):
         while True:
             mes = bytes("$016\r", encoding="ascii")
             self._serial.write(mes)
-            print(mes)
-
-            resp = self._serial.read_until(serial.CR)
+            resp = self._serial.read_until(serial.CR, 8)
             self.parseDI(resp)
-            print(resp)
             time.sleep(0.1) 
 
     def parseDI(self, resp):
-        pass
+        #!007F00\r
+        sresp = resp.decode(encoding="ascii")
+        if sresp[0] == "!":
+            io16 = int(sresp[3:5], base=16)
+            for i in range(8):
+                bit = io16 & 1
+                io16 >>= 1
+
+                if self.DI[i] == 1 and bit == 0:
+                    pass
+                self.DI[i] = bit
+        print(self.DI)
+
+    def onFalling(self, pin):
+        print("Falling", pin)
+        if pin == self._grosspin:
+            pass
+        elif pin == self._tarepin:
+            pass
+
