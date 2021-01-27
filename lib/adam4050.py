@@ -62,7 +62,7 @@ class ADAM4050(Thread):
 
     def loop(self):
         while True:
-            req = b'$' + self._addr + b'6\r'
+            req = b'$' + self._addr + b'6' + serial.CR
             self._serial.write(req)
             resp = self._serial.read_until(serial.CR, 8)
             self.parseDI(resp)
