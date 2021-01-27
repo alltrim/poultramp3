@@ -10,8 +10,8 @@ class ADAM4050(Thread):
         Thread.__init__(self)
 
         self._serial = None
-        self.DI = [1 * 8]
-        self.DO = [0 * 8]
+        self.DI = [1 for _ in range(8)]
+        self.DO = [0 for _ in range(8)]
 
         self._disabled = True
 
