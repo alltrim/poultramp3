@@ -13,10 +13,13 @@ class Worker(Thread):
         Thread.__init__(self)
 
         self._isRunning = False
+        self._Trigger = False
 
         self._session = session
         self._scales = scales
-        self._role = role               #role: 1 - gross, 2 - tare
+        self._role = role               #role: 1 - gross, 2 - tare, 3 - manual
+
+        self._scales.attachDisconnectCallback(self.doRestart)
 
         if not os.path.exists(self.__DATA_DIR):
             os.mkdir(self.__DATA_DIR)
@@ -25,10 +28,10 @@ class Worker(Thread):
         if not self._isRunning:
             if not self._scales.isDiabled():
                 self._isRunning = True
-                self.loop()
+                if self._scales.connect():
+                    self.loop()
 
-    def loop(self):
-
+    def setup(self):
         self._KeyboardInitReq = True
         self._WeightingDisplaing = 0
         self._WeightingResult = 0.0
@@ -36,6 +39,8 @@ class Worker(Thread):
         self._WeightingComlited = False
         self._currentQty = 0
 
+    def loop(self):
+        self.setup()
         while self._isRunning:
             
             if self._KeyboardInitReq: 
@@ -43,7 +48,11 @@ class Worker(Thread):
 
             res, status = self._scales.readStatusRegister()
             if res:
-                if status[0] == "D":
+                if status[0] == "B":
+                    self.setup()
+                    continue
+
+                elif status[0] == "D":
                     self.DeleteRecord()
                     self._scales.delay(0.5)
                 
@@ -120,7 +129,11 @@ class Worker(Thread):
             self._scales.display(display)
 
             self.CheckTrigger()
-                
+
+    def doRestart(self):
+        if self._isRunning:
+            if self._scales.connect():
+                self.loop()           
 
     def KeyboardInit(self):
         res = self._scales.keyboardConfig("0922210006000001")
@@ -131,6 +144,18 @@ class Worker(Thread):
 	        self._scales.display("Keyboard init: Fail")
         self._scales.buzz(True)
         return res
+
+    @property
+    def TriggerCallback(self):
+        return self._onTrigger
+
+    def _onTrigger(self):
+        self._Trigger = True
+
+    def CheckTrigger(self):
+        sw = self._Trigger
+        self._Trigger = False
+
 
     def OnStabilization(self, wt: float):
         if self._session.LotID == 0:
@@ -193,9 +218,6 @@ class Worker(Thread):
             self._session.DeadQty = 0
             self._session.EndUpdate()
         
-    def CheckTrigger(self):
-        pass
-
     def getFileName(self, lot:int):
         now = datetime.datetime.now()
         year = now.year

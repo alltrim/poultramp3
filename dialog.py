@@ -8,31 +8,89 @@ class Dialog():
     #constructor
     def __init__(self, config):
         self._disabled = True
+        self._disconnectcallback = None
+        self._sock = None
+
+        self._timeoutcounter = 0
 
         host = config.get("host", "127.0.0.1")
         port = int(config.get("port", "1001"))
         addr = int(config.get("addr", "1"))
         disabled = int(config.get("disabled", "1"))
 
+        self._addr = bytes("{0:0=2d}".format(addr), encoding="cp1251")
+        self._host = host
+        self._port = port
+
         if not disabled == 1:
             self._disabled = False
-            self._addr = bytes("{0:0=2d}".format(addr), encoding="cp1251")
+            #self.connect()
+            #self._sock = socket.socket()
+            #self._sock.settimeout(0.1)
+            #self._sock.connect((host, port))
 
+    def attachDisconnectCallback(self, callback):
+        if callback:
+            self._disconnectcallback = callback
+
+    def connect(self):
+        if self._disabled:
+            return False
+        d = False
+        try:
+            if self._sock:
+                self._sock.close()
+        except OSError:
+            pass
+
+        try:
             self._sock = socket.socket()
             self._sock.settimeout(0.1)
-            self._sock.connect((host, port))
+            self._sock.connect((self._host, self._port))
+            self._timeoutcounter = 0
+            print("On connect ({}:{})".format(self._host, self._port))
+
+        except OSError as ex:
+            print(ex, type(ex))
+            d = True
+        finally:
+            if d:
+                self._ondisconnect()
+                return False
+        
+        return True
+
+    def _ondisconnect(self):
+        print("On disconnect ({}:{})".format(self._host, self._port))
+        if self._disconnectcallback:
+            self._disconnectcallback()       
 
     def read(self, size=1):
+        d = False
         try:
             res = self._sock.recv(size)
-        except Exception as ex:
+            self._timeoutcounter = 0
+        except OSError as ex:
+            if type(ex) == socket.timeout:
+                self._timeoutcounter += 1
+                if self._timeoutcounter > 8:
+                    d = True
+            else:
+                print(ex, type(ex))
+                d = True
             res = b""
+        finally:
+            if d:
+                self._ondisconnect()
         return res
 
     def write(self, data):
         try:
             res = self._sock.send(data)
-        except Exception as ex:
+            #print("send: ", data)
+        except OSError as ex:
+            print(ex, type(ex))
+            self._ondisconnect()  
             res = 0
         return res
     
@@ -47,6 +105,7 @@ class Dialog():
         while True:
             b = self.read(1)
             if len(b) == 0 or b == terminator:
+                #print("read: ", resp)
                 return resp.decode(encoding="cp1251")
             resp += b
 
