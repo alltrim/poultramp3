@@ -192,7 +192,8 @@ class Worker(Thread):
 
     def AddRecord(self):
         self._WeightingComlited = False
-        
+        print("Adding", self._WeightingResult)
+
         lot = self._session.LotID
         art = self._session.Article
         if lot == 0 or art == "D" or self._WeightingResult < 3.0:
