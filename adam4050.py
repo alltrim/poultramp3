@@ -10,7 +10,7 @@ class ADAM4050(Thread):
         Thread.__init__(self)
 
         self._serial = None
-        self.DI = [1 for _ in range(8)]
+        self.DI = [1 for _ in range(7)]
         self.DO = [0 for _ in range(8)]
 
         self._disabled = True
@@ -63,7 +63,7 @@ class ADAM4050(Thread):
             return
         if sresp[0] == "!":
             io16 = int(sresp[3:5], base=16)
-            for i in range(8):
+            for i in range(7):
                 bit = io16 & 1
                 io16 >>= 1
                 if self.DI[i] == 1 and bit == 0:
