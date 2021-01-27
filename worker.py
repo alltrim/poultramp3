@@ -151,11 +151,12 @@ class Worker(Thread):
 
     def _onTrigger(self):
         self._Trigger = True
+        print(self._role, "On trigger")
 
     def CheckTrigger(self):
         sw = self._Trigger
         self._Trigger = False
-        print(self._role, "Trigger ", sw)
+        #print(self._role, "Trigger ", sw)
 
 
     def OnStabilization(self, wt: float):
