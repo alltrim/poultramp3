@@ -306,7 +306,8 @@ class Worker(Thread):
         if confirm == 0:
             return
         lot = self._session.LotID
-        role = 2 if self._role==2 else 1 
+        #role = 2 if self._role==2 else 1
+        role = self._role 
         now = datetime.datetime.now()
         filename = self.getFileName(lot)
         try:
