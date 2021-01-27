@@ -59,12 +59,13 @@ class ADAM4050(Thread):
     def parseDI(self, resp):
         #!007F00\r
         sresp = resp.decode(encoding="ascii")
+        if len(sresp) < 8:
+            return
         if sresp[0] == "!":
             io16 = int(sresp[3:5], base=16)
             for i in range(8):
                 bit = io16 & 1
                 io16 >>= 1
-
                 if self.DI[i] == 1 and bit == 0:
                     pass
                 self.DI[i] = bit
