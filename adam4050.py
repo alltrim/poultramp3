@@ -67,7 +67,7 @@ class ADAM4050(Thread):
                 bit = io16 & 1
                 io16 >>= 1
                 if self.DI[i] == 1 and bit == 0:
-                    pass
+                    self.onFalling(i)
                 self.DI[i] = bit
         print(self.DI)
 
