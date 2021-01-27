@@ -46,6 +46,12 @@ class Worker(Thread):
             if self._KeyboardInitReq: 
                 self.KeyboardInit()
 
+            if self._WeightingStarted:
+                self.DoWeighting()
+            
+            if self._WeightingComlited:
+                self.AddRecord()
+
             res, status = self._scales.readStatusRegister()
             if res:
                 if status[0] == "B":
@@ -152,8 +158,29 @@ class Worker(Thread):
     def CheckTrigger(self):
         sw = self._Trigger
         self._Trigger = False
-        #print(self._role, "Trigger ", sw)
+        if sw:
+            self.StartWeighting()
 
+    def StartWeighting(self):
+        if not self._WeightingStarted and not self._WeightingComlited and self._WeightingDisplaing == 0:
+            self._WeightingStarted = True
+
+    def DoWeighting(self):
+        self._WeightingStarted = False
+        self._WeightingResult = 0.0
+        summa = 0.0
+        n = 0
+        self._scales.display("#")
+        self._scales.triggerDelay()
+        while n < 10:
+            r, wt = self._scales.getCurrentWeight()
+            if r:
+                n += 1
+                summa += wt
+                self._WeightingResult = summa / float(n)
+        self._scales.display("{:.3f}".format(self._WeightingResult))
+        self._WeightingComlited = True
+        self._WeightingDisplaing = 8
 
     def OnStabilization(self, wt: float):
         if self._session.LotID == 0:

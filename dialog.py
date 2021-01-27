@@ -5,6 +5,8 @@ import re
 import time
 
 class Dialog():
+    __TRIGGER_DELAY = 0.5
+    
     #constructor
     def __init__(self, config):
         self._disabled = True
@@ -99,6 +101,9 @@ class Dialog():
 
     def delay(self, sec):
         time.sleep(sec)
+
+    def triggerDelay(self):
+        self.delay(self.__TRIGGER_DELAY)
 
     def readUntil(self, terminator):
         resp = b""
