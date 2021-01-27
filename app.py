@@ -81,16 +81,19 @@ class App():
 
         if self._gross:
             if self._trigger:
-                self._trigger.attachGrossPinCallback(self._gross.TriggerCallback)
+                self._trigger.attachGrossPinCallback(self._gross.onTrigger)
             self._gross.start()
 
         if self._tare:
             if self._trigger:
-                self._trigger.attachTarePinCallback(self._tare.TriggerCallback)
+                self._trigger.attachTarePinCallback(self._tare.onTrigger)
             self._tare.start()
 
         if self._manual:
             self._manual.start()
+
+        if self._trigger:
+            self._trigger.start()
 
         self._isRunning = True
         self.loop()

@@ -145,11 +145,7 @@ class Worker(Thread):
         self._scales.buzz(True)
         return res
 
-    @property
-    def TriggerCallback(self):
-        return self._onTrigger
-
-    def _onTrigger(self):
+    def onTrigger(self):
         self._Trigger = True
         print(self._role, "On trigger")
 
