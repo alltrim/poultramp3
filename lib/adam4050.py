@@ -23,10 +23,12 @@ class ADAM4050(Thread):
         self._bits = int(config.get("bits", "8"))
         self._parity = config.get("parity", "N")
         self._stopbits = int(config.get("stopbits", "1"))
-        self._addr = int(config.get("addr", "1"))
         self._grosspin = int(config.get("grosspin", "0"))
         self._tarepin = int(config.get("tarepin", "1"))
         
+        addr = int(config.get("addr", "1"))
+        self._addr = bytes("{0:0=2d}".format(addr), encoding="cp1251")
+
         disabled = int(config.get("disabled", "1"))
         if disabled == 0:
             self._disabled = False
@@ -60,8 +62,8 @@ class ADAM4050(Thread):
 
     def loop(self):
         while True:
-            mes = bytes("$016\r", encoding="ascii")
-            self._serial.write(mes)
+            req = b'$' + self._addr + b'6\r'
+            self._serial.write(req)
             resp = self._serial.read_until(serial.CR, 8)
             self.parseDI(resp)
             time.sleep(0.1) 
