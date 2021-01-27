@@ -162,7 +162,7 @@ class Dialog():
         time.sleep(0.05)
         self.write(req)
         resp = self.readUntil(b"\0")
-        #print(req, "->", resp)
+        print(req, "->", resp)
         r = re.match(r"^[NS]{0,1}([ +-][ 0-9.]{7}) [ k][g]$", resp)
         if r:
             result = True
