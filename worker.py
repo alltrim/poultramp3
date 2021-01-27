@@ -181,21 +181,25 @@ class Worker(Thread):
         qty = 1 if self._currentQty==0 else self._currentQty
         wt = self._WeightingResult
         
-        if self._role == 3:
-            if art == "E":
-                role = 2
-            else:
-                role = 1
-        else:
-            role = self._role
+        role = self._role
+        #if self._role == 3:
+        #    if art == "E":
+        #        role = 2
+        #    else:
+        #        role = 1
+        #else:
+        #    role = self._role
 
         try:
             with open(filename, "a") as file:
-                rec = "{0:d};{1:%Y.%m.%d %H:%M:%S};C;{2:d};{3:.3f}\r\n".format(role, now, qty, wt)
+                rec = "{0:d};{1:%Y.%m.%d %H:%M:%S};{2};{3:d};{4:.3f}\r\n".format(role, now, art, qty, wt)
                 file.write(rec)
             self._currentQty = 0
             self._session.BeginUpdate()
             if role == 1:
+                self._session.TotalWeight += wt
+                self._session.TotalQty += qty
+            elif role == 3 and art == "C":
                 self._session.TotalWeight += wt
                 self._session.TotalQty += qty
             else:
@@ -217,6 +221,49 @@ class Worker(Thread):
             self._session.DeadWeight = 0.0
             self._session.DeadQty = 0
             self._session.EndUpdate()
+        elif self._role == 3:
+            try:
+                self._deleteLastRecord()
+            except Exception as ex:
+                print("Record deletion failed:", ex)
+                self.recordDeletionError()
+
+    def _deleteLastRecord(self):
+        lot = self._session.LotID
+        art = self._session.Article
+        wt = 0.0
+        qty = 0
+
+        filename = self.getFileName(lot)
+        with open(filename, "r+") as file:
+            newrecords = []
+            records = file.readlines()
+            records.reverse()
+            for record in records:
+                fields = record.split(sep=";")
+                if int(fields[0]) == 3 and fields[2] == art:
+                    qty = int(fields[3])
+                    wt = float(fields[4])
+                    continue
+                newrecords.append(record)
+            newrecords.reverse()
+            file.truncate(0)
+            file.writelines(newrecords)
+
+        self._session.BeginUpdate()
+        if art == "C":
+            self._session.TotalQty -= qty
+            self._session.TotalWeight -= wt
+        else:
+            self._session.TareQty -= qty
+            self._session.TareWeight -= wt
+        self._session.EndUpdate()
+
+
+    def recordDeletionError(self):
+        self._scales.display("Can't delete")
+        self._scales.buzz(True)
+        self._scales.delay(5)         
         
     def getFileName(self, lot:int):
         now = datetime.datetime.now()
