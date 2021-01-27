@@ -8,7 +8,7 @@ Type=simple
 WorkingDirectory=/home/poultramp/app/poultramp3/
 User=poultramp
 Group=poultramp
-ExecStart=/usr/bin/python3 /home/poultramp/app/poultramp3/app.py
+ExecStart=/usr/bin/python3 /home/poultramp/app/poultramp3/app.py > app.log
 
 [Install]
 WantedBy=multi-user.target

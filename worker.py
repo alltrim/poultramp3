@@ -222,11 +222,12 @@ class Worker(Thread):
             self._session.DeadQty = 0
             self._session.EndUpdate()
         elif self._role == 3:
-            try:
-                self._deleteLastRecord()
-            except Exception as ex:
-                print("Record deletion failed:", ex)
-                self.recordDeletionError()
+            pass
+            #try:
+            #    self._deleteLastRecord()
+            #except Exception as ex:
+            #    print("Record deletion failed:", ex)
+            #    self.recordDeletionError()
 
     def _deleteLastRecord(self):
         lot = self._session.LotID
@@ -258,7 +259,6 @@ class Worker(Thread):
             self._session.TareQty -= qty
             self._session.TareWeight -= wt
         self._session.EndUpdate()
-
 
     def recordDeletionError(self):
         self._scales.display("Can't delete")
