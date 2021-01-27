@@ -5,6 +5,7 @@ import time
 from session import Session
 from dialog import Dialog
 from worker import Worker
+from adam4050 import ADAM4050
 
 
 class App():
@@ -54,7 +55,13 @@ class App():
             print("Can't create Manual worker")
 
     def _createIO(self):
-        pass
+        try:
+            cfg = self._config["IO"]
+            self._manual = ADAM4050(cfg)
+            self._manual.daemon = True
+        except Exception as ex:
+            print(ex)
+            print("Can't create IO worker")
 
     def loop(self):
         while self._isRunning:
