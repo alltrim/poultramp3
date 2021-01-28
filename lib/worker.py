@@ -109,8 +109,7 @@ class Worker(Thread):
                     else:
                         item = "Chicken in cage"
                         wt = self._session.TotalWeight
-                        qty = self._session.TotalQty
-                        
+                        qty = self._session.TotalQty       
 
                 display += "Total: {0:d}/{1:.3f}\n".format(qty, wt)
                 display += "{0:<20}\n".format(item)
@@ -137,12 +136,19 @@ class Worker(Thread):
             self.doRestart()
 
     def onDisconnect(self):
-        raise ConnectionResetError()           
+        raise ConnectionResetError("Connection was lost")           
 
     def doRestart(self):
-        if self._isRunning:
-            if self._scales.connect():
-                self.loop()    
+        print("doRestart")
+        while self._isRunning:
+            try:
+                time.sleep(1)
+                if self._scales.connect():
+                    self.loop()
+                    break
+            except ConnectionResetError:
+                pass
+
 
     def KeyboardInit(self):
         res = self._scales.keyboardConfig("0922210006000001")

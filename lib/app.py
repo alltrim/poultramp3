@@ -64,11 +64,12 @@ class App():
             print("Can't create IO worker")
 
     def loop(self):
-        while self._isRunning:
-            time.sleep(0.05)
-            #print("in loop")
-
-        print("out loop")
+        try:
+            while self._isRunning:
+                time.sleep(0.05)
+        except KeyboardInterrupt:
+            pass
+        print("Exit app")
 
     def run(self):
         self._session.Read()
