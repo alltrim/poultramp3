@@ -27,7 +27,7 @@ class ThisHTTPRequestHandler(SimpleHTTPRequestHandler):
         return
 
 def main():
-    server = HTTPServer(("127.0.0.1", 5000), ThisHTTPRequestHandler)
+    server = HTTPServer(("", 5000), ThisHTTPRequestHandler)
     server.serve_forever()
 
 if __name__ == "__main__":
