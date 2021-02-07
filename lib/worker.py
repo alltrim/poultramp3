@@ -13,6 +13,7 @@ class Worker(Thread):
         Thread.__init__(self)
 
         self._isRunning = False
+        self._isConnected = False
         self._Trigger = False
 
         self._session = session
@@ -28,8 +29,11 @@ class Worker(Thread):
         if not self._isRunning:
             if not self._scales.isDiabled():
                 self._isRunning = True
-                if self._scales.connect():
-                    self.loop()
+                self.keepaliveLoop()
+                self.loop()
+                #if self._scales.connect():
+                #    self._isConnected = True
+                    
 
     def setup(self):
         self._KeyboardInitReq = True
@@ -42,113 +46,118 @@ class Worker(Thread):
     def loop(self):
         self.setup()
         while self._isRunning:
-            try:
-                if self._KeyboardInitReq: 
-                    self.KeyboardInit()
+            time.sleep(0.05)
+            while self._isConnected:
+                try:
+                    if self._KeyboardInitReq: 
+                        self.KeyboardInit()
 
-                res, status = self._scales.readStatusRegister()
-                if res:
-                    if status[0] == "B":
-                        self.setup()
-                        continue
+                    res, status = self._scales.readStatusRegister()
+                    if res:
+                        if status[0] == "B":
+                            self.setup()
+                            continue
 
-                    elif status[0] == "D":
-                        self.DeleteRecord()
-                        self._scales.delay(0.5)
-                    
-                    if status[1:3] == "1A":
-                        if self._session.Article == "D":
-                            self._session.Article = "C"
-                        elif self._session.Article == "C" and self._role == 3:
-                            self._session.Article = "E"  
-                        else:
-                            self._session.Article = "D"
-                        self._scales.delay(0.5)
-
-                res, bufstate = self._scales.readBufferStateRegister()
-                if res:
-                    if bufstate[3] == "1":
-                        r, code = self._scales.getF5Code()
-                        if r:
-                            f5 = int(code)
-                            if self._session.LotID == 0:
-                                self.OpenLot(f5)
+                        elif status[0] == "D":
+                            self.DeleteRecord()
+                            self._scales.delay(0.5)
+                        
+                        if status[1:3] == "1A":
+                            if self._session.Article == "D":
+                                self._session.Article = "C"
+                            elif self._session.Article == "C" and self._role == 3:
+                                self._session.Article = "E"  
                             else:
-                                self.CloseLot(f5)
+                                self._session.Article = "D"
+                            self._scales.delay(0.5)
 
-                    if bufstate[5] == "1":
-                        r, code = self._scales.getF4Code()
-                        if r:
-                            f4 = int(code)
-                            if self._session.LotID:
-                                if self._session.Article == "D":
-                                    self._session.DeadQty = f4
+                    res, bufstate = self._scales.readBufferStateRegister()
+                    if res:
+                        if bufstate[3] == "1":
+                            r, code = self._scales.getF5Code()
+                            if r:
+                                f5 = int(code)
+                                if self._session.LotID == 0:
+                                    self.OpenLot(f5)
                                 else:
-                                    self._currentQty = f4
-                    
-                    if bufstate[12] == "1":
-                        r, wt = self._scales.getWeight()
-                        if r:
-                            self.OnStabilization(wt)
+                                    self.CloseLot(f5)
 
-                now = datetime.datetime.now()
+                        if bufstate[5] == "1":
+                            r, code = self._scales.getF4Code()
+                            if r:
+                                f4 = int(code)
+                                if self._session.LotID:
+                                    if self._session.Article == "D":
+                                        self._session.DeadQty = f4
+                                    else:
+                                        self._currentQty = f4
+                        
+                        if bufstate[12] == "1":
+                            r, wt = self._scales.getWeight()
+                            if r:
+                                self.OnStabilization(wt)
 
-                lot = "----" if self._session.LotID==0 else "{0:d}".format(self._session.LotID)
-                tm = now.strftime("%H:%M") if now.microsecond>=500000 else now.strftime("%H %M")
-                display = "Lot N: {0:<8}{1:<5}\n".format(lot, tm)
+                    now = datetime.datetime.now()
 
-                if self._session.Article == "D":
-                    item = "Dead chicken"
-                    wt = self._session.DeadWeight
-                    qty = self._session.DeadQty
-                else:
-                    if self._role==2 or self._session.Article == "E":
-                        item = "Empty cage"
-                        wt = self._session.TareWeight
-                        qty = self._session.TareQty
+                    lot = "----" if self._session.LotID==0 else "{0:d}".format(self._session.LotID)
+                    tm = now.strftime("%H:%M") if now.microsecond>=500000 else now.strftime("%H %M")
+                    display = "Lot N: {0:<8}{1:<5}\n".format(lot, tm)
+
+                    if self._session.Article == "D":
+                        item = "Dead chicken"
+                        wt = self._session.DeadWeight
+                        qty = self._session.DeadQty
                     else:
-                        item = "Chicken in cage"
-                        wt = self._session.TotalWeight
-                        qty = self._session.TotalQty       
+                        if self._role==2 or self._session.Article == "E":
+                            item = "Empty cage"
+                            wt = self._session.TareWeight
+                            qty = self._session.TareQty
+                        else:
+                            item = "Chicken in cage"
+                            wt = self._session.TotalWeight
+                            qty = self._session.TotalQty       
 
-                display += "Total: {0:d}/{1:.3f}\n".format(qty, wt)
-                display += "{0:<20}\n".format(item)
+                    display += "Total: {0:d}/{1:.3f}\n".format(qty, wt)
+                    display += "{0:<20}\n".format(item)
 
-                if self._WeightingDisplaing > 0:
-                    self._WeightingDisplaing -= 1
-                    display += "# {0:.3f}".format(self._WeightingResult)
-                else:
-                    display += "Art Tar      "
-                    if self._currentQty == 0:
-                        display += "Qty "
+                    if self._WeightingDisplaing > 0:
+                        self._WeightingDisplaing -= 1
+                        display += "# {0:.3f}".format(self._WeightingResult)
                     else:
-                        display += "*{0:<3d}".format(self._currentQty)
-                    display += "Beg" if self._session.LotID==0 else "End"
+                        display += "Art Tar      "
+                        if self._currentQty == 0:
+                            display += "Qty "
+                        else:
+                            display += "*{0:<3d}".format(self._currentQty)
+                        display += "Beg" if self._session.LotID==0 else "End"
 
-                self._scales.display(display)
+                    self._scales.display(display)
 
-                self.CheckTrigger()
+                    self.CheckTrigger()
 
-            except ConnectionResetError:
-                break
+                except ConnectionResetError:
+                    break
         
-        if self._isRunning:
-            self.doRestart()
+        #if self._isRunning:
+        #    self.keepaliveLoop()
 
     def onDisconnect(self):
+        self._isConnected = False
         raise ConnectionResetError("Connection was lost")           
 
-    def doRestart(self):
-        print("doRestart")
+    def keepaliveLoop(self):
         while self._isRunning:
-            try:
+            time.sleep(0.05)
+            while not self._isConnected:
                 time.sleep(1)
-                if self._scales.connect():
-                    self.loop()
-                    break
-            except ConnectionResetError:
-                pass
-
+                print("Connecting...")
+                try:
+                    if self._scales.connect():
+                        self._isConnected = True
+                        #self.loop()
+                except ConnectionResetError:
+                    pass
+            
 
     def KeyboardInit(self):
         res = self._scales.keyboardConfig("0922210006000001")
