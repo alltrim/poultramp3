@@ -5,7 +5,7 @@ import time
 import datetime
 import os
 
-#test
+#test 2
 class Worker(Thread):
     __DATA_DIR = "./data/"
 
