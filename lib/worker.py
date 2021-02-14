@@ -4,6 +4,7 @@ from threading import Thread
 import time
 import datetime
 import os
+from tryparse import parseint
 
 #test 2
 class Worker(Thread):
@@ -77,7 +78,7 @@ class Worker(Thread):
                         if bufstate[3] == "1":
                             r, code = self._scales.getF5Code()
                             if r:
-                                f5 = int(code)
+                                f5 = parseint(code)
                                 if self._session.LotID == 0:
                                     self.OpenLot(f5)
                                 else:
@@ -86,7 +87,7 @@ class Worker(Thread):
                         if bufstate[5] == "1":
                             r, code = self._scales.getF4Code()
                             if r:
-                                f4 = int(code)
+                                f4 = parseint(code)
                                 if self._session.LotID:
                                     if self._session.Article == "D":
                                         self._session.DeadQty = f4
