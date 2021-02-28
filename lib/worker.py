@@ -6,7 +6,7 @@ import datetime
 import os
 from tryparse import parseint
 
-#test 2
+#test 3
 class Worker(Thread):
     __DATA_DIR = "./data/"
 
