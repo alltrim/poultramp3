@@ -21,6 +21,7 @@ class Worker(Thread):
         self._session = session
         self._scales = scales
         self._role = role               #role: 1 - gross, 2 - tare, 3 - manual
+        self.Article = "C"
 
         self._scales.attachDisconnectCallback(self.onDisconnect)
 
@@ -65,12 +66,12 @@ class Worker(Thread):
                             self._scales.delay(0.5)
                         
                         if status[1:3] == "1A":
-                            if self._session.Article == "D":
-                                self._session.Article = "C"
-                            elif self._session.Article == "C" and self._role == 3:
-                                self._session.Article = "E"  
+                            if self.Article == "D":
+                                self.Article = "C"
+                            elif self.Article == "C" and self._role == 3:
+                                self.Article = "E"  
                             else:
-                                self._session.Article = "D"
+                                self.Article = "D"
                             self._scales.delay(0.5)
 
                     res, bufstate = self._scales.readBufferStateRegister()
@@ -89,7 +90,7 @@ class Worker(Thread):
                             if r:
                                 f4 = parseint(code)
                                 if self._session.LotID:
-                                    if self._session.Article == "D":
+                                    if self.Article == "D":
                                         self._session.DeadQty = f4
                                     else:
                                         self._currentQty = f4
@@ -105,12 +106,12 @@ class Worker(Thread):
                     tm = now.strftime("%H:%M") if now.microsecond>=500000 else now.strftime("%H %M")
                     display = "Lot N: {0:<8}{1:<5}\n".format(lot, tm)
 
-                    if self._session.Article == "D":
+                    if self.Article == "D":
                         item = "Dead chicken"
                         wt = self._session.DeadWeight
                         qty = self._session.DeadQty
                     else:
-                        if self._role==2 or self._session.Article == "E":
+                        if self._role==2 or self.Article == "E":
                             item = "Empty cage"
                             wt = self._session.TareWeight
                             qty = self._session.TareQty
@@ -137,11 +138,12 @@ class Worker(Thread):
 
                     self.CheckTrigger()
 
-                except ConnectionResetError:
-                    break
+                except ConnectionResetError as ex:
+                    break    
         
-        #if self._isRunning:
-        #    self.keepaliveLoop()
+            if self._isRunning:
+                self.keepaliveLoop()
+                #self.setup()
 
     def onDisconnect(self):
         self._isConnected = False
@@ -157,6 +159,7 @@ class Worker(Thread):
                     if self._scales.connect():
                         self._isConnected = True
                         #self.loop()
+                        return
                 except ConnectionResetError:
                     pass
             
@@ -207,7 +210,7 @@ class Worker(Thread):
     def OnStabilization(self, wt: float):
         if self._session.LotID == 0:
             return
-        if self._session.Article == "D":
+        if self.Article == "D":
             self._session.DeadWeight += wt
         else:
             self._WeightingStarted = False
@@ -221,7 +224,7 @@ class Worker(Thread):
         print("Adding", self._WeightingResult)
 
         lot = self._session.LotID
-        art = self._session.Article
+        art = self.Article
         if lot == 0 or art == "D" or self._WeightingResult < 3.0:
             return
         now = datetime.datetime.now()
@@ -264,7 +267,7 @@ class Worker(Thread):
     def DeleteRecord(self):
         if self._session.LotID == 0:
             return
-        if self._session.Article == "D":
+        if self.Article == "D":
             self._session.BeginUpdate()
             self._session.DeadWeight = 0.0
             self._session.DeadQty = 0
@@ -279,7 +282,7 @@ class Worker(Thread):
 
     def _deleteLastRecord(self):
         lot = self._session.LotID
-        art = self._session.Article
+        art = self.Article
         wt = 0.0
         qty = 0
 
@@ -341,7 +344,7 @@ class Worker(Thread):
         self._currentQty = 0
         self._session.BeginUpdate()
         self._session.LotID = lot
-        self._session.Article = "C"
+        self.Article = "C"
         self._session.TotalQty = 0
         self._session.TotalWeight = 0.0
         self._session.TareQty = 0

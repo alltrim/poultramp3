@@ -75,7 +75,7 @@ class Dialog():
         except OSError as ex:
             if type(ex) == socket.timeout:
                 self._timeoutcounter += 1
-                if self._timeoutcounter > 8:
+                if self._timeoutcounter > 50:
                     d = True
             else:
                 print(ex, type(ex))
