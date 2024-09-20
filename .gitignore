@@ -8,3 +8,4 @@ HelloWorld.service
 settings.ini
 .vscode/settings.json
 .vscode/launch.json
+docker-compose-prod.yml

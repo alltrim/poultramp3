@@ -1,59 +1,10 @@
 version: '3.8'
 
 services:
-  poultramp3:
-    image: alltrim/poultramp3:latest
+  poultramp3_dev:
+    build: .
     restart: always
     volumes:
-      - app_data:/app/data
-    networks:
-      - app_net
+      - ./data:/app/data
     ports:
-      - 5000:5000
-    configs:
-      - source: app_config
-        target: /app/settings.ini
-        mode: 444
-
-
-configs:
-  app_config:
-    content: |
-      [Gross]
-      host=192.168.50.107
-      port=1001
-      addr=1
-      model=SE12
-      disabled=1
-
-      [Tare]
-      host=192.168.50.108
-      port=1001
-      addr=2
-      model=ME12
-      disabled=1
-
-      [Manual]
-      host=192.168.50.109
-      port=1001
-      addr=1
-      model=ME12
-      disabled=0
-
-      [IO]
-      port=/dev/ttyS1
-      baud=9600
-      bits=8
-      parity=N
-      stopbits=1
-      addr=1
-      grosspin=0
-      tarepin=1
-      disabled=1
-
-volumes:
-  app_data:
-
-
-networks:
-  app_net:
+      - 5001:80

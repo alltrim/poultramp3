@@ -1,7 +1,7 @@
 # For more information, please refer to https://aka.ms/vscode-docker-python
 FROM python:3.11-slim
 
-EXPOSE 5000
+EXPOSE 80
 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -17,7 +17,7 @@ COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
 
 # Version
-ENV APP_VERSION=3.2.2
+ENV APP_VERSION=3.2.3
 
 
 # Creates application folder & copy source code

@@ -148,7 +148,7 @@ class Dialog():
         self.write(req)
         resp = self.readUntil(b"\0")
         #print(resp)
-        r = re.match(r"^[NS]{0,1}([ +-][ 0-9.]{7}) [ k][g]$", resp)
+        r = re.match(r"^[NS]{0,1}([ +-][ 0-9.]{7}).{0,3}$", resp)
         if r:
             result = True
             w = r.group(1).replace(r" ", r"")
@@ -163,7 +163,7 @@ class Dialog():
         self.write(req)
         resp = self.readUntil(b"\0")
         print(req, "->", resp)
-        r = re.match(r"^[NS]{0,1}([ +-][ 0-9.]{7}) [ k][g]$", resp)
+        r = re.match(r"^[NS]{0,1}([ +-][ 0-9.]{7}).{0,3}$", resp)
         if r:
             result = True
             w = r.group(1).replace(r" ", r"")
@@ -177,7 +177,7 @@ class Dialog():
         time.sleep(0.05)
         self.write(req)
         resp = self.readUntil(b"\0")
-        r = re.match(r"^([ +-][ 0-9.]{7}) [ k][g]$", resp)
+        r = re.match(r"^([ +-][ 0-9.]{7}).{0,3}$", resp)
         if r:
             result = True
             w = r.group(1).replace(r" ", r"")
